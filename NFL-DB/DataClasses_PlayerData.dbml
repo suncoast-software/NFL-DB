@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="Nfl_Data" Class="DataClasses_PlayerDataDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Nfl_Data.mdf;Integrated Security=True" SettingsObjectName="NFL_DB.Properties.Settings" SettingsPropertyName="Nfl_DataConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.players" Member="players">
+    <Type Name="player">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="PlayerName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="Pos" Type="System.String" DbType="NVarChar(2)" CanBeNull="true" />
+      <Column Name="Team" Type="System.String" DbType="NVarChar(25)" CanBeNull="true" />
+      <Column Name="College" Type="System.String" DbType="NVarChar(25)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Function Name="dbo.insertPlayer" Method="insertPlayer">
+    <Parameter Name="PlayerName" Parameter="playerName" Type="System.String" DbType="NVarChar(50)" />
+    <Parameter Name="Pos" Parameter="pos" Type="System.String" DbType="NVarChar(2)" />
+    <Parameter Name="Team" Parameter="team" Type="System.String" DbType="NVarChar(25)" />
+    <Parameter Name="College" Parameter="college" Type="System.String" DbType="NVarChar(25)" />
+    <Return Type="System.Int32" />
+  </Function>
+</Database>
