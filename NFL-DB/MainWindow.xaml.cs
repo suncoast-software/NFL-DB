@@ -47,7 +47,7 @@ namespace NFL_DB
             //}
 
             links = DataHelper.Get_Player_Links();
-            DataHelper.Save_Player_Links_To_XML(links);
+            XmlHelper.Save_Player_Links_To_XML(links);
            
         }
     }
