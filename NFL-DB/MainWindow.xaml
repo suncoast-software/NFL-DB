@@ -6,9 +6,5 @@
         xmlns:local="clr-namespace:NFL_DB"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <DataGrid x:Name="playerData" HorizontalAlignment="Left" Height="312" VerticalAlignment="Top" Width="740" Margin="25,45,0,0"/>
-        <Label x:Name="lblCount" Content="Label" HorizontalAlignment="Left" Margin="118,379,0,0" VerticalAlignment="Top"/>
-
-    </Grid>
+    <Grid/>
 </Window>

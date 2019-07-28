@@ -11,45 +11,42 @@ namespace NFL_DB.Helpers
 {
     public static class XmlHelper
     {
-        public static void Save_Player_Data(List<player> players)
+        public static void Save_Player_Data(List<Player> players)
         {
-            string xmlPath = AppDomain.CurrentDomain.BaseDirectory + @"\data\xml\playerData.xml";
+            string xmlPath = AppDomain.CurrentDomain.BaseDirectory + @"\data\xml\current_nfl_players_Data.xml";
 
-            if (!File.Exists(xmlPath))
+            
+            foreach (var player in players)
             {
-                foreach (var player in players)
+                if (!File.Exists(xmlPath))
                 {
-                    XDocument xmlDoc = new XDocument(new XDeclaration("1.0", "utf-8", "yes"),
-                                                new XElement("players",
-                                                    new XElement("player",
-                                                        new XElement("playerName", player.PlayerName),
-                                                        new XElement("pos", player.Pos),
-                                                        new XElement("team", player.Team),
-                                                        new XElement("college", player.College)
-                                                        )));
+                XDocument xmlDoc = new XDocument(new XDeclaration("1.0", "utf-8", "yes"),
+                                        new XElement("players",
+                                            new XElement("player",
+                                                new XElement("playerName", player.Name),
+                                                new XElement("pos", player.Pos),
+                                                new XElement("team", player.Team),
+                                                new XElement("college", player.College)
+                                                )));
 
-                    xmlDoc.Save(xmlPath);
+                xmlDoc.Save(xmlPath);
                 }
-                
-            }
-            else
-            {
-                foreach (var player in players)
+                else
                 {
                     var playerElement = new XElement("player",
-                                            new XElement("playerName", player.PlayerName),
+                                            new XElement("playerName", player.Name),
                                             new XElement("pos", player.Pos),
                                             new XElement("team", player.Team),
                                             new XElement("college", player.College)
                                             );
 
                     var xmlDoc = XDocument.Load(xmlPath);
-                    xmlDoc.Add(playerElement);
+                    xmlDoc.Element("players").AddFirst(playerElement);
                     xmlDoc.Save(xmlPath);
-
                 }
-                
+                   
             }
+               
         }
     }
 }

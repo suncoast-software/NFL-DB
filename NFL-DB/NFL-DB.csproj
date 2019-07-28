@@ -88,6 +88,7 @@
       <DependentUpon>DataClasses_PlayerData.dbml</DependentUpon>
     </Compile>
     <Compile Include="Helpers\DataHelper.cs" />
+    <Compile Include="Helpers\DirectoryHelper.cs" />
     <Compile Include="Helpers\XmlHelper.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -99,6 +100,7 @@
     <Compile Include="Models\MessageType.cs" />
     <Compile Include="Models\Player.cs" />
     <Compile Include="Models\SeasonType.cs" />
+    <Compile Include="Models\Stat.cs" />
     <Compile Include="Models\Team.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
