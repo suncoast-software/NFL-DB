@@ -81,10 +81,9 @@ namespace NFL_DB.Helpers
                 else
                 {
                     XDocument xDoc = XDocument.Load(xmlPath);
-                    var el = new XElement("links",
-                                            new XElement("player",
-                                            new XAttribute("player", link.Key),
-                                            new XAttribute("link", link.Value)));
+                    var el = new XElement("player",
+                                        new XAttribute("player", link.Key),
+                                        new XAttribute("link", link.Value));
 
                     xDoc.Element("links").AddFirst(el);
                     xDoc.Save(xmlPath);

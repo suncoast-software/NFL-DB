@@ -9,6 +9,7 @@ namespace NFL_DB.Models
     public class Player
     {
         public string Name { get; set; }
+        public string Link { get; set; }
         public string Pos { get; set; }
         public string Team { get; set; }
         public string  College { get; set; }
@@ -17,12 +18,19 @@ namespace NFL_DB.Models
         {
         }
 
-        public Player(string name, string pos, string team, string college)
+        public Player(string name, string link)
+        {
+            Name = name;
+            Link = link;
+        }
+
+        public Player(string name, string pos, string team, string college, string link)
         {
             Name = name;
             Pos = pos;
             Team = team;
             College = college;
+            Link = link;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using NFL_DB.Helpers;
+﻿using NFL_DB.Data;
+using NFL_DB.Helpers;
 using NFL_DB.Models;
 using System;
 using System.Collections.Generic;
@@ -22,9 +23,10 @@ namespace NFL_DB
     /// </summary>
     public partial class MainWindow : Window
     {
-        DataClasses_PlayerDataDataContext db = new DataClasses_PlayerDataDataContext();
-        List<Matchup> matchups = new List<Matchup>();
-        Dictionary<string, string> links = new Dictionary<string, string>();
+       // DataClasses_PlayerDataDataContext db = new DataClasses_PlayerDataDataContext();
+        List<Player> players = new List<Player>();
+        List<Game> games = new List<Game>();
+       // Dictionary<string, string> links = new Dictionary<string, string>();
         public MainWindow()
         {
             InitializeComponent();
@@ -35,20 +37,43 @@ namespace NFL_DB
             //DataHelper.Get_Week_Scores("1970", "1", SeasonType.REG);
             //XmlHelper.Save_Player_Data(playersList);
             //DataHelper.Get_Player_Links("2018");
+            DataHelper.Get_All_Player_Stats_Links();
 
-            //for (int i = 2017; i < 2019; i++)
+            //DataHelper.Get_Player_Links();
+            //players_data.ItemsSource = SqliteDataAccess.LoadPlayers();
+
+            // DataHelper.Get_All_Player_Stats_Links();
+            //players_data.ItemsSource = SqliteDataAccess.LoadPlayers();
+
+            //players_data.ItemsSource = SqliteDataAccess.LoadGames();
+            // games = SqliteDataAccess.LoadGames();
+        }
+
+        private void BtnOne_Click(object sender, RoutedEventArgs e)
+        {
+            //DataHelper.Get_Week_Scores("2010", "8", SeasonType.REG);
+            //string[] queryDetails = txtQuery.Text.Split(' ');
+
+            //if (queryDetails.Length > 1)
             //{
-            //    matchups.Clear();
-            //    for (int y = 1; y < 18; y++)
-            //    {
-            //      matchups = DataHelper.Get_Week_Scores(i.ToString(), y.ToString(), SeasonType.REG);
-            //      DataHelper.Save_Scores_To_XML(matchups, i.ToString(), y.ToString());
-            //    }  
-            //}
+            //    var _games = (from game in games
+            //                  where game.Year.Equals(queryDetails[0]) && game.Week.Equals(queryDetails[1])
+            //                  select game).ToList();
 
-            links = DataHelper.Get_Player_Links();
-            XmlHelper.Save_Player_Links_To_XML(links);
-           
+            //    MessageBox.Show(_games.Count().ToString());
+            //    players_data.ItemsSource = _games;
+            //}
+            //else
+            //{
+            //    var _games = (from game in games
+            //                  where game.Year.Equals(queryDetails[0])
+            //                  select game).ToList();
+
+            //    MessageBox.Show(_games.Count().ToString());
+            //    players_data.ItemsSource = _games;
+            //}
+            
+                
         }
     }
 }

@@ -3,69 +3,91 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
 using HtmlAgilityPack;
+using NFL_DB.Data;
 using NFL_DB.Models;
 
 namespace NFL_DB.Helpers
 {
-    public static class DataHelper
+    public class DataHelper
     {
         //https://www.footballdb.com/scores/index.html?lg=NFL&yr=2018&type=reg&wk=1
 
         public static DataClasses_PlayerDataDataContext playersDB = new DataClasses_PlayerDataDataContext();
 
         /// <summary>
-        /// Get Each Players - Name, Team, POS and College
+        /// Get All Players - Name, Team, POS, College and Link to each players personal Stats page
         /// </summary>
-        /// <returns>List</returns>
+        /// <returns>Void</returns>
         #region PLAYER STATS
-        public static List<Player> Get_Current_Player_Stats()
+        public static void Get_All_Player_Stats_Links()
         {
             string lastNameLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            List<Player> players = new List<Player>();
+           // List<Player> players = new List<Player>();
             
-            for (int i = 0; i < lastNameLetters.Length; i++)
+            for (int i = 0; i <= lastNameLetters.Length; i++)
             {
                 string currentLetter = lastNameLetters.Substring(i, 1);
-                string mainPage = "https://www.footballdb.com/players/current.html?letter=" + currentLetter;
+                string mainPage = "https://www.footballdb.com/players/players.html?letter=" + currentLetter;
 
                 HtmlWeb page = new HtmlWeb();
                 HtmlDocument doc = page.Load(mainPage);
-               
-                HtmlNodeCollection playersTbl = doc.DocumentNode.SelectNodes("//div[@class='divtable divtable-striped']//div[@class='tr']");
 
-                foreach (HtmlNode node in playersTbl)
+                HtmlNodeCollection pageCountNode = doc.DocumentNode.SelectNodes("//div[@class='dropdown']//ul//li");
+
+                if (pageCountNode != null)
                 {
-                    string playerName = node.ChildNodes[0].InnerText;
-                    string pos = node.ChildNodes[1].InnerText;
-                    string team = node.ChildNodes[2].InnerText;
-                    string college = node.ChildNodes[3].InnerText;
-
-                    players.Add(new Player(playerName, pos, team, college));
-
-                    try
+                    for (int y = 1; y <= pageCountNode.Count; y++)
                     {
-                        playersDB.insertPlayer(playerName, pos, team, college);
+                        mainPage = "https://www.footballdb.com/players/players.html?page=" + y.ToString() + "&letter=" + currentLetter;
+                        page = new HtmlWeb();
+                        doc = page.Load(mainPage);
+
+                        HtmlNodeCollection playersTbl = doc.DocumentNode.SelectNodes("//table//tbody//tr");
+
+                        if (playersTbl != null)
+                        {
+                            foreach (HtmlNode node in playersTbl)
+                            {
+                                string playerName = node.ChildNodes[0].InnerText;
+                                string pos = node.ChildNodes[1].InnerText;
+                                string team = node.ChildNodes[3].InnerText;
+                                string college = node.ChildNodes[2].InnerText;
+                                string playerLink = node.ChildNodes[0].ChildNodes[0].Attributes["href"].Value;
+
+                                try
+                                {
+                                    //playersDB.insertPlayer(playerName, pos, team, college);
+                                    string preLink = "https://www.footballdb.com";
+                                    SqliteDataAccess.Save_Player(new Player(playerName, pos, team, college, preLink + playerLink));
+                                    Thread.Sleep(200);
+                                }
+                                catch (Exception ex)
+                                {
+                                    //MessageBox.Show("an Error occured", "INSERT ERROR\r\n" + ex.Message, MessageBoxButton.OK, MessageBoxImage.Information);
+                                    using (StreamWriter writer = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + @"\data\errors.txt", true))
+                                    {
+                                        writer.WriteLine("[{0}] {1} : " + ex.Message, currentLetter, playerName);
+                                    }
+                                    continue;
+                                }
+
+                            }
+                        }
+
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("an Error occured", "INSERT ERROR\r\n" + ex.Message, MessageBoxButton.OK, MessageBoxImage.Information);
-                        continue;
-                    }
-                    //string test = "";
                 }
- 
+                      
             }
-
-            return players;
         }
         #endregion
 
         /// <summary>
-        /// Get Player Links
+        /// Get All Player Links to their Player Page
         /// </summary>
         /// <returns>Dictionary</returns>
         #region GET PLAYER LINKS
@@ -105,7 +127,9 @@ namespace NFL_DB.Helpers
 
                                 if (!playerLinks.ContainsKey(playerName))
                                 {
-                                    playerLinks.Add(playerName, link);
+                                    string preLink = "https://www.footballdb.com";
+                                    //playerLinks.Add(playerName, preLink + link);
+                                    SqliteDataAccess.Save_Player(new Player(playerName, preLink + link));
                                 }
                             }
                         }
@@ -130,7 +154,9 @@ namespace NFL_DB.Helpers
 
                             if (!playerLinks.ContainsKey(playerName))
                             {
-                                playerLinks.Add(playerName, link);
+                                string preLink = "https://www.footballdb.com";
+                                //playerLinks.Add(playerName, preLink + link);
+                                SqliteDataAccess.Save_Player(new Player(playerName, preLink + link));
                             }
                         }
                     }
@@ -154,6 +180,7 @@ namespace NFL_DB.Helpers
 
         public static List<Matchup> Get_Week_Scores(string year, string week, SeasonType season)
         {
+            //List<string> pageCountLinks = new List<string>();
             string seasonType = "";
 
             switch (season)
@@ -169,43 +196,59 @@ namespace NFL_DB.Helpers
                     break;
             }
 
+            
             string url = "https://www.footballdb.com/scores/index.html?lg=NFL&yr=" + year + "&type=" + seasonType + "&wk=" + week;
             List<Matchup> matchups = new List<Matchup>();
 
             HtmlWeb page = new HtmlWeb();
             HtmlDocument doc = page.Load(url);
 
+            //pageCountLinks = Get_PageCountNodes(url);
             HtmlNodeCollection teamNodes = doc.DocumentNode.SelectNodes("//table//tbody//tr");
-          
-            for (int i = 0; i < teamNodes.Count - 1; i+=2)
+            //tmlNodeCollection details = doc.DocumentNode.SelectNodes("//div[@class='divider']//h2");
+            if (teamNodes != null)
             {
-                //away team data
-                string awayTeamName = teamNodes[i].ChildNodes[1].InnerText;
-                int awayIndex = awayTeamName.LastIndexOf('(');
-                string awayRecord = awayTeamName.Substring(awayIndex);
-                string awayTeamNameFinal = awayTeamName.Replace(awayRecord, "").Trim();
-                string aqOneScore = teamNodes[i].ChildNodes[3].InnerText;
-                string aqTwoScore = teamNodes[i].ChildNodes[4].InnerText;
-                string aqThreeScore = teamNodes[i].ChildNodes[5].InnerText;
-                string aqFourScore = teamNodes[i].ChildNodes[6].InnerText;
-                string aFinalScore = teamNodes[i].ChildNodes[7].InnerText;
-                string[] awayQuarterScores = new string[] { aqOneScore, aqTwoScore, aqThreeScore, aqFourScore };
+                for (int i = 0; i < teamNodes.Count - 1; i += 2)
+                {
+                    try
+                    {
+                        //away team data
+                        string awayTeamName = teamNodes[i].ChildNodes[1].InnerText;
+                        int awayIndex = awayTeamName.LastIndexOf('(');
+                        string awayRecord = awayTeamName.Substring(awayIndex);
+                        string awayTeamNameFinal = awayTeamName.Replace(awayRecord, "").Trim();
+                        string aqOneScore = teamNodes[i].ChildNodes[3].InnerText;
+                        string aqTwoScore = teamNodes[i].ChildNodes[4].InnerText;
+                        string aqThreeScore = teamNodes[i].ChildNodes[5].InnerText;
+                        string aqFourScore = teamNodes[i].ChildNodes[6].InnerText;
+                        string aFinalScore = teamNodes[i].ChildNodes[7].InnerText;
+                        string[] awayQuarterScores = new string[] { aqOneScore, aqTwoScore, aqThreeScore, aqFourScore };
 
-                //home team data
-                string homeTeamName = teamNodes[i + 1].ChildNodes[1].InnerText;
-                int homeIndex = homeTeamName.LastIndexOf('(');
-                string homeRecord = homeTeamName.Substring(homeIndex);
-                string homeTeamNameFinal = homeTeamName.Replace(homeRecord, "").Trim();
-                string hqOneScore = teamNodes[i + 1].ChildNodes[3].InnerText;
-                string hqTwoScore = teamNodes[i + 1].ChildNodes[4].InnerText;
-                string hqThreeScore = teamNodes[i + 1].ChildNodes[5].InnerText;
-                string hqFourScore = teamNodes[i + 1].ChildNodes[6].InnerText;
-                string hFinalScore = teamNodes[i + 1].ChildNodes[7].InnerText;
-                string[] homeQuarterScores = new string[] { hqOneScore, hqTwoScore, hqThreeScore, hqFourScore };
+                        //home team data
+                        string homeTeamName = teamNodes[i + 1].ChildNodes[1].InnerText;
+                        int homeIndex = homeTeamName.LastIndexOf('(');
+                        string homeRecord = homeTeamName.Substring(homeIndex);
+                        string homeTeamNameFinal = homeTeamName.Replace(homeRecord, "").Trim();
+                        string hqOneScore = teamNodes[i + 1].ChildNodes[3].InnerText;
+                        string hqTwoScore = teamNodes[i + 1].ChildNodes[4].InnerText;
+                        string hqThreeScore = teamNodes[i + 1].ChildNodes[5].InnerText;
+                        string hqFourScore = teamNodes[i + 1].ChildNodes[6].InnerText;
+                        string hFinalScore = teamNodes[i + 1].ChildNodes[7].InnerText;
+                        string[] homeQuarterScores = new string[] { hqOneScore, hqTwoScore, hqThreeScore, hqFourScore };
 
-                //add data to list
-                matchups.Add(new Matchup(new Team(awayTeamNameFinal, awayRecord), new Team(homeTeamNameFinal, homeRecord), aFinalScore, hFinalScore, awayQuarterScores, homeQuarterScores));
+                        SqliteDataAccess.Save_Game(new Game(awayTeamNameFinal, homeTeamNameFinal, aFinalScore, hFinalScore, awayRecord, homeRecord, aqOneScore, aqTwoScore, aqThreeScore, aqFourScore,
+                                                            hqOneScore, hqTwoScore, hqThreeScore, hqFourScore, year, week));
+                        Thread.Sleep(200);
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+
+                    //matchups.Add(new Matchup(new Team(awayTeamNameFinal, awayRecord), new Team(homeTeamNameFinal, homeRecord), aFinalScore, hFinalScore, awayQuarterScores, homeQuarterScores));
+                }
             }
+           
 
             return matchups;
         }
@@ -369,7 +412,19 @@ namespace NFL_DB.Helpers
 
         #endregion
 
- 
+        /// <summary>
+        /// Method to collect all Game data from 1970 - present
+        /// </summary>
+        #region RUN GET ALL GAME DATA
+
+        public static void Run_Get_Game_Data()
+        {
+            //Get game data here.
+        }
+
+        #endregion
+
+
         /// <summary>
         /// Send Message to Form
         /// </summary>
@@ -398,6 +453,37 @@ namespace NFL_DB.Helpers
 
             return message;
         }
+        #endregion
+
+        
+        #region PRIVATE METHODS
+
+        /// <summary>
+        /// Get Page Count Node for the seasons ie PRE , REG or POST
+        /// </summary>
+        /// <param name="pageLink"></param>
+        /// <returns></returns>
+        private static List<string> Get_PageCountNodes(string pageLink)
+        {
+            List<string> pageLinks = new List<string>();
+            string preLink = "https://www.footballdb.com";
+            HtmlWeb page = new HtmlWeb();
+            HtmlDocument doc = page.Load(pageLink);
+
+            HtmlNodeCollection pageCountNode = doc.DocumentNode.SelectNodes("//div[@class='dropdown']//ul//li//a");
+
+            for (int i = 0; i < pageCountNode.Count; i++)
+            {
+                string link = pageCountNode[i].Attributes["href"].Value.Replace("amp;", "");
+                if (link.Contains("reg"))
+                {
+                    pageLinks.Add(preLink + link);
+                }
+            }
+
+            return pageLinks;
+        }
+
         #endregion
 
 
